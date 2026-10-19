@@ -21,7 +21,7 @@ class Status(str, Enum):
 
 
 def frame_status(evidence: HeadEvidence, person_confidence: float, config: Config) -> Status:
-    """Decision for a single frame. Uncertain cases are UNKNOWN, never NO_HELMET."""
+    """Decide one frame; missing helmet evidence can count as NO_HELMET when configured."""
     if evidence.ambiguous:
         return Status.UNKNOWN
 
@@ -31,7 +31,7 @@ def frame_status(evidence: HeadEvidence, person_confidence: float, config: Confi
     if evidence.label == NO_HELMET and evidence.confidence >= config.no_helmet_confidence:
         return Status.NO_HELMET
 
-    # Optional design: a clearly visible person with no helmet evidence at all counts as No Helmet.
+    # Do not infer a violation from weak person detections or ambiguous head evidence.
     if (config.derive_no_helmet and evidence.label is None
             and person_confidence >= max(config.person_confidence, config.no_helmet_confidence)):
         return Status.NO_HELMET

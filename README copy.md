@@ -32,7 +32,7 @@ Built with **Python + OpenCV + YOLO (Ultralytics)**.
    python scripts/download_model.py
    ```
 
-   or train your own (see section 7). Without a helmet model, the app still runs, but it only finds people and shows every status as Unknown.
+   or train your own (see section 7). Without a helmet model, the app can only infer No Helmet from confidently detected people, so install a helmet model for reliable results.
 
 5. **Check that everything works:** `pytest` should report all tests passed, and `python main.py --start --source samples/demo.mp4` should play the demo video with boxes.
 
@@ -119,7 +119,7 @@ All settings are in [`config.yaml`](config.yaml). Change them there, or use **Se
 | `logging_enabled`, `log_retention_days` | Event log in `logs/` |
 | `snapshots_enabled`, `snapshot_retention_days` | Save a frame on each alert to `snapshots/` (off by default) |
 | `recording_enabled`, `recording_dir`, `recording_retention_days` | Record the monitoring view to MP4 in `recordings/` (off by default; `V` key or `--record` to start) |
-| `derive_no_helmet` | Alternative design: a person with no helmet evidence counts as No Helmet |
+| `derive_no_helmet` | When enabled (default), a confidently detected person with no helmet evidence counts as No Helmet; this can cause false alerts if the head is hidden or the helmet is missed |
 | `display_width` | Window resolution |
 
 ## 4. How it works
@@ -162,8 +162,8 @@ flowchart TD
 | Status | When | Action |
 |---|---|---|
 | **HELMET** | Helmet evidence on the person's head is at least `helmet_confidence` | None |
-| **NO HELMET** | `no_helmet` evidence is at least `no_helmet_confidence`, **and** stays stable across frames | Alert after `alert_stable_frames` |
-| **UNKNOWN** | Low confidence, no head evidence, helmet between two overlapping people, or conflicting evidence | Never an automatic violation |
+| **NO HELMET** | `no_helmet` evidence is at least `no_helmet_confidence`, or (when `derive_no_helmet` is enabled) a person is confidently detected with no helmet evidence; the status must stay stable across frames | Alert after `alert_stable_frames` |
+| **UNKNOWN** | Low confidence, ambiguous or conflicting evidence, or no helmet evidence when `derive_no_helmet` is disabled | Never an automatic violation |
 
 - **Association:** a helmet box belongs to a person when at least `association_min_overlap` of it lies inside the top `head_region_ratio` of the person's box. If it fits two people almost equally, both are set to Unknown rather than guessing.
 - **Temporal stability:** each person keeps the last `smoothing_window` frame decisions. Their status only changes when a new status fills at least `status_min_ratio` of that window (hysteresis), so one odd frame cannot cause a violation. When a person leaves the scene, their state is reset.

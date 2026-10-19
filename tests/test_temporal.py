@@ -17,16 +17,16 @@ def test_frame_status_uses_thresholds():
     assert frame_status(HeadEvidence(NO_HELMET, 0.55), 0.9, config) == Status.UNKNOWN
 
 
-def test_ambiguous_or_missing_evidence_is_unknown():
+def test_ambiguous_evidence_stays_unknown_and_missing_evidence_derives_no_helmet():
     config = Config()
     assert frame_status(HeadEvidence(NO_HELMET, 0.99, ambiguous=True), 0.9, config) == Status.UNKNOWN
-    assert frame_status(HeadEvidence(), 0.99, config) == Status.UNKNOWN
-
-
-def test_derived_no_helmet_mode():
-    config = Config(derive_no_helmet=True)
     assert frame_status(HeadEvidence(), 0.9, config) == Status.NO_HELMET
     assert frame_status(HeadEvidence(), 0.3, config) == Status.UNKNOWN
+
+
+def test_no_helmet_derivation_can_be_disabled():
+    config = Config(derive_no_helmet=False)
+    assert frame_status(HeadEvidence(), 0.9, config) == Status.UNKNOWN
 
 
 # ---------- smoothing ----------

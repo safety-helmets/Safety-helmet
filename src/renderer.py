@@ -159,7 +159,7 @@ def render(frame: np.ndarray, overlay: Overlay, display_width: int = 1280) -> np
 
 # ---------- Dashboard style: head box + rounded label, as in the web dashboard ----------
 
-PILL_TEXT = {Status.HELMET: "Helmet Detected", Status.NO_HELMET: "No Helmet", Status.UNKNOWN: "Checking..."}
+PILL_TEXT = {Status.HELMET: "Helmet", Status.NO_HELMET: "No Helmet", Status.UNKNOWN: "Checking..."}
 PILL_RGB = {Status.HELMET: (22, 163, 74), Status.NO_HELMET: (220, 38, 38), Status.UNKNOWN: (217, 119, 6)}
 _FONT_CACHE: dict = {}
 
@@ -212,23 +212,23 @@ def render_dashboard(frame: np.ndarray, people: list[PersonView], max_width: int
         x2, y2 = min(width - 1, x2), min(height - 1, y2)
         draw.rectangle((x1, y1, x2, y2), outline=colour, width=line)
 
-        # Rounded label centred under the box, with a white circle icon. Sized to the person, so
-        # labels of small (distant) people stay small; very small people get the icon only.
+        # Rounded label centred under the box, with a white circle icon.
         person_width = (person.box[2] - person.box[0]) * scale
         font_size = int(min(max_font, max(11, person_width * 0.11)))
-        font = _font(font_size)
         text = PILL_TEXT[person.status]
-        pill_h = round(font_size * 1.9)
-        icon = round(pill_h * 0.62)
-        pad = round(pill_h * 0.3)
-        if person_width < font_size * 6:
-            text = ""
-            pill_w = pad * 2 + icon
-        else:
+        available_width = max(1, width - 16)
+        while True:
+            font = _font(font_size)
+            pill_h = round(font_size * 1.9)
+            icon = round(pill_h * 0.62)
+            pad = round(pill_h * 0.3)
             pill_w = pad + icon + pad * 0.8 + draw.textlength(text, font=font) + pad * 1.3
+            if pill_w <= available_width or font_size <= 8:
+                break
+            font_size -= 1
         cx = (x1 + x2) / 2
-        px1 = min(max(0, cx - pill_w / 2), width - pill_w)
-        py1 = min(y2 - pill_h * 0.35, height - pill_h)
+        px1 = max(0, min(cx - pill_w / 2, width - pill_w))
+        py1 = max(0, min(y2 - pill_h * 0.35, height - pill_h))
         draw.rounded_rectangle((px1, py1, px1 + pill_w, py1 + pill_h), radius=pill_h // 2, fill=colour)
 
         ix1, iy1 = px1 + pad, py1 + (pill_h - icon) / 2

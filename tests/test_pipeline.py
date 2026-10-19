@@ -9,7 +9,7 @@ from src.detector import HELMET, NO_HELMET, PERSON, Detection
 from src.event_logger import EventLogger, read_events
 from src.helmet_classifier import Status
 from src.pipeline import SafetyPipeline
-from src.renderer import Overlay, render
+from src.renderer import PILL_RGB, PILL_TEXT, Overlay, render
 
 FRAME = np.zeros((480, 640, 3), dtype=np.uint8)
 
@@ -63,7 +63,7 @@ def test_two_people_one_violation_one_alert(tmp_path):
 def test_flickering_low_evidence_never_alerts(tmp_path):
     # No-helmet evidence only every third frame: not stable, no alert.
     frames = [[person(0), head(0, NO_HELMET)] if i % 3 == 0 else [person(0)] for i in range(60)]
-    pipeline = make_pipeline(frames, tmp_path)
+    pipeline = make_pipeline(frames, tmp_path, derive_no_helmet=False)
     assert sum(len(pipeline.process(FRAME).alerts) for _ in range(60)) == 0
 
 
@@ -88,6 +88,12 @@ def test_renderer_draws_without_errors(tmp_path):
     image = render(FRAME, Overlay(result.people, result.counts, pipeline.statistics,
                                   messages=["test"]), 800)
     assert image.shape[1] == 800
+
+
+def test_dashboard_status_labels_and_colours():
+    assert PILL_TEXT[Status.HELMET] == "Helmet"
+    assert PILL_TEXT[Status.NO_HELMET] == "No Helmet"
+    assert PILL_RGB[Status.NO_HELMET] == (220, 38, 38)
 
 
 def test_config_roundtrip_and_validation(tmp_path):

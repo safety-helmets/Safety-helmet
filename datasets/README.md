@@ -14,9 +14,7 @@ The app also accepts other class names. `config.yaml` maps names such as `Hardha
 
 ## Design choice
 
-This project uses **three classes**, so "No Helmet" comes from direct visual evidence (`no_helmet`), not just from a missing helmet. This reduces false violations when a helmet is simply not detected.
-
-The alternative design trains only `person` and `helmet` and treats a person with no associated helmet as No Helmet. To use it, set `derive_no_helmet: true` in `config.yaml`. It produces more false alerts, so test it carefully.
+The app can use direct `no_helmet` visual evidence. By default, it also treats a confidently detected person with no associated helmet evidence as No Helmet (`derive_no_helmet: true`). This supports models trained without a `no_helmet` class, but can produce false alerts when a head is hidden or the helmet is missed. Set `derive_no_helmet: false` in `config.yaml` to require direct `no_helmet` evidence instead.
 
 ## Folder layout
 

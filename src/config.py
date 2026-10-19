@@ -37,7 +37,7 @@ class Config:
     head_region_ratio: float = 0.35
     association_min_overlap: float = 0.5
     association_margin: float = 0.15
-    derive_no_helmet: bool = False
+    derive_no_helmet: bool = True
 
     # Temporal stability
     smoothing_window: int = 15
